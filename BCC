@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Broken Calculator Ultimate</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#bdd1ff;
+margin:0;
+padding:1px;
+}
+
+h1{
+text-align:center;
+margin-bottom:25px;
+}
+
+#container{
+display:flex;
+gap:40px;
+justify-content:center;
+align-items:flex-start;
+}
+
+/* colonnes */
+
+.column{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* colonne gauche */
+
+#panel{
+width:260px;
+}
+
+/* colonne calculatrice */
+
+#calcColumn{
+text-align:center;
+}
+
+/* colonne résultats */
+
+#resultColumn{
+width:260px;
+}
+
+/* calculatrice */
+
+#display{
+width:230px;
+height:45px;
+font-size:35px;
+color:red;
+text-align:right;
+margin-bottom:10px;
+padding:5px;
+}
+
+.calcButton{
+width:55px;
+height:55px;
+margin:4px;
+font-size:30px;
+border:none;
+border-radius:6px;
+background:#e4e9f0;
+cursor:pointer;
+}
+
+.calcButton:hover{
+background:#d3d9e3;
+}
+
+/* boutons contrôle */
+
+.controlButton{
+width:100%;
+height:45px;
+font-size:16px;
+margin-top:10px;
+border:none;
+border-radius:6px;
+background:#4c7ef3;
+color:white;
+cursor:pointer;
+}
+
+.controlButton:hover{
+background:#3c66c8;
+}
+
+.broken{
+background:#ff6b6b;
+color:white;
+}
+
+.disabled{
+background:#ccc;
+}
+
+/* challenge */
+
+#challenge{
+font-size:20px;
+margin-bottom:10px;
+}
+
+/* feedback */
+
+#feedback{
+font-size:22px;
+margin-top:10px;
+height:30px;
+}
+
+.correct{color:green;}
+.wrong{color:red;}
+.info{color:#444;}
+
+/* timer */
+
+#timer{
+font-size:40px;
+color:#4c7ef3;
+margin-bottom:20px;
+text-align:center;
+}
+
+/* solutions */
+
+#solutions{
+margin-top:10px;
+}
+
+#solutions ul{
+padding-left:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Broken Calculator Challenge</h1>
+
+<div id="container">
+
+<!-- COLONNE 1 : réglages -->
+
+<div id="panel" class="column">
+
+<div>
+🎯 Target number<br>
+<input type="number" id="targetInput" value="20">
+</div>
+
+<br>
+
+<div>
+🧮 Allowed operations<br>
+<label><input type="checkbox" id="add" checked> +</label><br>
+<label><input type="checkbox" id="sub" checked> −</label><br>
+<label><input type="checkbox" id="mul"> ×</label><br>
+<label><input type="checkbox" id="div"> ÷</label>
+</div>
+
+<br>
+
+<div>
+🔢 Broken digits<br>
+<input type="text" id="brokenDigits" placeholder="example: 3,7">
+</div>
+
+<br>
+
+<div>
+⚙️ Max operations<br>
+<select id="opLimit">
+<option value="free">Free</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+</select>
+</div>
+
+<button class="controlButton" onclick="applySettings()">Let's calculate !</button>
+<button class="controlButton" onclick="resetSolutions()">Reset solutions</button>
+<button class="controlButton" onclick="toggleFullscreen()">Full screen mode</button>
+<button class="controlButton" onclick="toggleTimer()">Start / Stop timer</button>
+
+</div>
+
+<!-- COLONNE 2 : calculatrice -->
+
+<div id="calcColumn" class="column">
+
+<div id="challenge">
+Target: <b id="target">20</b>
+</div>
+
+<input id="display" disabled>
+
+<br>
+
+<button class="calcButton" onclick="press('1')" id="b1">1</button>
+<button class="calcButton" onclick="press('2')" id="b2">2</button>
+<button class="calcButton" onclick="press('3')" id="b3">3</button>
+<button class="calcButton" onclick="press('+')" id="bplus">+</button>
+
+<br>
+
+<button class="calcButton" onclick="press('4')" id="b4">4</button>
+<button class="calcButton" onclick="press('5')" id="b5">5</button>
+<button class="calcButton" onclick="press('6')" id="b6">6</button>
+<button class="calcButton" onclick="press('-')" id="bminus">−</button>
+
+<br>
+
+<button class="calcButton" onclick="press('7')" id="b7">7</button>
+<button class="calcButton" onclick="press('8')" id="b8">8</button>
+<button class="calcButton" onclick="press('9')" id="b9">9</button>
+<button class="calcButton" onclick="press('*')" id="bmul">×</button>
+
+<br>
+
+<button class="calcButton" onclick="press('0')" id="b0">0</button>
+<button class="calcButton" onclick="checkResult()">=</button>
+<button class="calcButton" onclick="clearDisplay()">C</button>
+<button class="calcButton" onclick="press('/')" id="bdiv">÷</button>
+
+<div id="feedback"></div>
+
+</div>
+
+<!-- COLONNE 3 : timer + solutions -->
+
+<div id="resultColumn" class="column">
+
+<div id="timer">
+⌚ 00:00
+</div>
+
+<button class="controlButton" onclick="resetTimer()">Reset timer</button>
+
+<div id="solutions">
+<b>Solutions found: <span id="solutionCount">0</span></b>
+<ul id="solutionList"></ul>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let display=document.getElementById("display")
+let solutions=new Set()
+
+let timerInterval=null
+let seconds=0
+
+function press(v){
+display.value+=v
+}
+
+function clearDisplay(){
+display.value=""
+document.getElementById("feedback").innerText=""
+}
+
+function countOperations(expr){
+let m=expr.match(/[+\-*/]/g)
+return m?m.length:0
+}
+
+function checkResult(){
+
+let expr=display.value
+let feedback=document.getElementById("feedback")
+let limit=document.getElementById("opLimit").value
+
+if(limit!=="free"){
+
+let nb=countOperations(expr)
+
+if(nb < Number(limit)){
+feedback.innerText="Not enough operations"
+feedback.className="wrong"
+return
+}
+
+if(nb > Number(limit)){
+feedback.innerText="Too many operations"
+feedback.className="wrong"
+return
+}
+
+}
+try{
+
+let result=eval(expr)
+let target=Number(document.getElementById("target").innerText)
+
+display.value=result
+
+if(result===target){
+
+if(solutions.has(expr)){
+feedback.innerText="Already found!"
+feedback.className="info"
+return
+}
+
+solutions.add(expr)
+
+let li=document.createElement("li")
+li.textContent=expr+" = "+target
+document.getElementById("solutionList").appendChild(li)
+
+document.getElementById("solutionCount").innerText=solutions.size
+
+feedback.innerText="Correct!"
+feedback.className="correct"
+
+}
+else{
+feedback.innerText="Try again"
+feedback.className="wrong"
+}
+
+}
+catch{
+display.value="Error"
+}
+
+}
+
+function resetSolutions(){
+
+solutions.clear()
+document.getElementById("solutionList").innerHTML=""
+document.getElementById("solutionCount").innerText="0"
+document.getElementById("feedback").innerText=""
+}
+
+function resetButtons(){
+
+let buttons=document.querySelectorAll(".calcButton")
+
+buttons.forEach(b=>{
+b.disabled=false
+b.classList.remove("broken")
+b.classList.remove("disabled")
+})
+
+}
+
+function applySettings(){
+
+clearDisplay()
+resetSolutions()
+resetButtons()
+
+let target=document.getElementById("targetInput").value
+document.getElementById("target").innerText=target
+
+let broken=document.getElementById("brokenDigits").value.split(",")
+
+broken.forEach(d=>{
+d=d.trim()
+
+if(d!==""){
+let btn=document.getElementById("b"+d)
+
+if(btn){
+btn.disabled=true
+btn.classList.add("broken")
+}
+}
+})
+
+if(!document.getElementById("add").checked)disableButton("bplus")
+if(!document.getElementById("sub").checked)disableButton("bminus")
+if(!document.getElementById("mul").checked)disableButton("bmul")
+if(!document.getElementById("div").checked)disableButton("bdiv")
+
+}
+
+function disableButton(id){
+let btn=document.getElementById(id)
+btn.disabled=true
+btn.classList.add("disabled")
+}
+
+function toggleFullscreen(){
+
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen()
+}
+else{
+document.exitFullscreen()
+}
+
+}
+
+function resetTimer(){
+
+clearInterval(timerInterval)
+timerInterval=null
+
+seconds=0
+
+document.getElementById("timer").innerText="⌚ 00:00"
+
+}
+
+function toggleTimer(){
+
+if(timerInterval){
+clearInterval(timerInterval)
+timerInterval=null
+return
+}
+
+timerInterval=setInterval(()=>{
+
+seconds++
+
+let m=Math.floor(seconds/60)
+let s=seconds%60
+
+document.getElementById("timer").innerText=
+"⌚ "+String(m).padStart(2,'0')+":"+String(s).padStart(2,'0')
+
+},1000)
+
+}
+
+applySettings()
+
+
+
+</script>
+
+</body>
+</html>
