@@ -15,7 +15,8 @@ padding:1px;
 
 h1{
 text-align:center;
-margin-bottom:25px;
+margin-bottom:10px;
+font-size:26px;
 }
 
 #container{
@@ -310,10 +311,17 @@ let display=document.getElementById("display")
 let solutions=new Set()
 
 let timerInterval=null
-let seconds=0
+let justCalculated=false
 
 function press(v){
+
+if(justCalculated){
+display.value=""
+justCalculated=false
+}
+
 display.value+=v
+
 }
 
 function clearDisplay(){
@@ -355,6 +363,7 @@ let result=eval(expr)
 let target=Number(document.getElementById("target").innerText)
 
 display.value=result
+justCalculated=true
 
 if(result===target){
 
