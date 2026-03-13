@@ -338,13 +338,17 @@ return m?m.length:0
 
 function checkResult(){
 
-let expr=display.value
+let expr = display.value
+
+// transformer les signes affichés en signes utilisables par JavaScript
+let exprForCalc = expr.replace(/×/g,"*").replace(/÷/g,"/")
+
 let feedback=document.getElementById("feedback")
 let limit=document.getElementById("opLimit").value
 
 if(limit!=="free"){
 
-let nb=countOperations(expr)
+let nb=countOperations(exprForCalc)
 
 if(nb < Number(limit)){
 feedback.innerText="Not enough operations"
@@ -359,10 +363,11 @@ return
 }
 
 }
+
 try{
 
-let result=eval(exprForCalc)
-let target=Number(document.getElementById("target").innerText)
+let result = eval(exprForCalc)
+let target = Number(document.getElementById("target").innerText)
 
 display.value=result
 justCalculated=true
@@ -398,7 +403,6 @@ display.value="Error"
 }
 
 }
-
 function resetSolutions(){
 
 solutions.clear()
