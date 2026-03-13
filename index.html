@@ -275,15 +275,14 @@ Target: <b id="target">20</b>
 <button class="calcButton" onclick="press('7')" id="b7">7</button>
 <button class="calcButton" onclick="press('8')" id="b8">8</button>
 <button class="calcButton" onclick="press('9')" id="b9">9</button>
-<button class="calcButton" onclick="press('*')" id="bmul">×</button>
+<button class="calcButton" onclick="press('×')" id="bmul">×</button>
 
 <br>
 
 <button class="calcButton" onclick="press('0')" id="b0">0</button>
 <button class="calcButton" onclick="checkResult()">=</button>
 <button class="calcButton" onclick="clearDisplay()">C</button>
-<button class="calcButton" onclick="press('/')" id="bdiv">÷</button>
-
+<button class="calcButton" onclick="press('÷')" id="bdiv">÷</button>
 <div id="feedback"></div>
 
 </div>
@@ -362,7 +361,7 @@ return
 }
 try{
 
-let result=eval(expr)
+let result=eval(exprForCalc)
 let target=Number(document.getElementById("target").innerText)
 
 display.value=result
